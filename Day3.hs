@@ -2,6 +2,7 @@ import System.IO
 import Data.List.Split
 import Data.List
 import Data.String
+import Data.Maybe
 
 
 sum_tuples :: (Int, Int) -> (Int, Int) -> (Int, Int)
@@ -21,13 +22,14 @@ move_coordinates ((dir:steps):moves) (c1, c2)
         generate_points x = take nsteps $ iterate (sum_tuples x) (c1, c2)
 
 
-max_manhattan :: (Int, Int) -> [(Int, Int)] -> Int
-max_manhattan (i1, i2) coords = minimum $ map (\(x, y) -> abs (x - i1) +  abs (y - i2)) coords
-
+n_steps :: [(Int, Int)] -> [(Int, Int)] -> Int
+n_steps w1 w2 = minimum $ map (\x -> fromJust (elemIndex x w1) + fromJust (elemIndex x w2)) i
+    where
+        i = tail $ w1 `intersect` w2
 
 main :: IO()
 main = do
     contents <-  readFile "data/day3.txt"
     let wire1:wire2:[] = map (splitOn ",") $ lines contents
-    let max_int = max_manhattan (0,0) $ tail $ (move_coordinates wire1 (0,0)) `intersect` (move_coordinates wire2 (0,0))
+    let max_int = n_steps (move_coordinates wire1 (0,0)) (move_coordinates wire2 (0,0))
     putStr $ show max_int ++ "\n"
