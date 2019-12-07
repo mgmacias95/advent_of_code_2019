@@ -1,13 +1,15 @@
 import Data.Char
+import Data.List
 
 list_digits :: Int -> [Int]
 list_digits = map (fromIntegral . digitToInt) . show
 
 meets_criteria :: (Int, Int) -> Int -> Bool
-meets_criteria (minc, maxc) n = (length $ show n) == 6 && (minc <= n && n <= maxc) && (and $ map (\(x,y) -> x <= y) pairs) && (or $ map (\(x,y) -> x == y) pairs)
+meets_criteria (minc, maxc) n = (length $ show n) == 6 && (minc <= n && n <= maxc) && (and $ map (\(x,y) -> x <= y) pairs) && (or $ map (\x -> length x == 2) g)
     where
         d = list_digits n
         pairs = zip d (tail d)
+        g = group d
 
 how_many_meet :: [Int] -> Int
 how_many_meet candidates = length $ filter (\x -> x == True) $ map (meets_criteria (minc, maxc)) candidates
