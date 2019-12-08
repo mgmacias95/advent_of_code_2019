@@ -1,8 +1,9 @@
+module Day5 (run_program) where
+
 import System.IO
 import Data.List.Split
 import Data.List
 import Data.Char
-
 
 list_digits :: Int -> [Int]
 list_digits = map (fromIntegral . digitToInt) . show
@@ -22,11 +23,11 @@ get_input = do
     return io_int_input
 
 
-run_program :: Int -> Int -> [Int] -> [Int]
+run_program :: [Int] -> Int -> [Int] -> [Int]
 run_program input position program = case (d*10 + e) of 99 -> program
                                                         1  -> run_program input (position + 4) (update_list program (v1 + v2) i3)
                                                         2  -> run_program input (position + 4) (update_list program (v1 * v2) i3)
-                                                        3  -> run_program input (position + 2) (update_list program input i1)
+                                                        3  -> run_program (tail input) (position + 2) (update_list program (head input) i1)
                                                         4  -> run_program input (position + 2) (program ++ [v1])
                                                         5  -> run_program input (if v1 == 0 then (position + 3) else v2) program
                                                         6  -> run_program input (if v1 /= 0 then (position + 3) else v2) program
@@ -47,5 +48,5 @@ main = do
     let program = map read $ splitOn "," contents :: [Int]
     input <- getLine
     let int_input = read input :: Int
-    let result = run_program int_input 0 program
+    let result = run_program [int_input] 0 program
     putStr $ (show $ last result) ++ "\n"
