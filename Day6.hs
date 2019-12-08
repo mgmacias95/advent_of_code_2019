@@ -2,18 +2,24 @@ import qualified Data.Map.Strict as Map
 import Data.List.Split
 import Data.List
 
-n_levels :: String -> Int -> Map.Map String [String] -> Int
-n_levels curr depth orbits = case children of [] -> depth
-                                              xs -> depth + (sum $ map (\x -> n_levels x (depth+1) orbits) xs)
-    where
-        children = Map.findWithDefault [] curr orbits
+build_child_parent :: [String] -> Map.Map String String
+build_child_parent = Map.fromList . map (\x -> (last x, head x)) . map (splitOn ")")
 
-build_parent_child :: [String] -> Map.Map String [String]
-build_parent_child = Map.fromListWith (++) . map (\x -> (head x, [last x])) . map (splitOn ")")
+leaf_to_root :: String -> Map.Map String String -> [String]
+leaf_to_root "COM" _ = []
+leaf_to_root leaf orbits = parent:leaf_to_root parent orbits
+    where
+        parent = (Map.!) orbits leaf
+
+shortest_path :: String -> String -> Map.Map String String -> Int
+shortest_path start end orbits = (length (san \\ you)) + (length (you \\ san))
+    where
+        san = leaf_to_root "SAN" orbits
+        you = leaf_to_root "YOU" orbits
 
 main :: IO()
 main = do
     contents <- readFile "data/day6.txt"
     let orbits = lines contents
-    let result = n_levels "COM" 0 $ build_parent_child orbits
+    let result = shortest_path "SAN" "YOU" (build_child_parent orbits)
     putStr $ (show result) ++ "\n"
