@@ -16,12 +16,6 @@ update_list lst elem pos = lhead ++ elem:tail ltail
     where
         (lhead, ltail) = splitAt pos lst
 
-get_input :: IO Int
-get_input = do
-    input <- getLine
-    let io_int_input = read input :: Int
-    return io_int_input
-
 
 run_program :: [Int] -> Int -> [Int] -> [Int]
 run_program input position program = case (d*10 + e) of 99 -> program
