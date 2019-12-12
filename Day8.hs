@@ -10,10 +10,15 @@ zeros_per_layer image (width, height) = (n '1' $ layers !! min_nzeros_layer) * (
         min_nzeros_layer = fromJust $ elemIndex (minimum nzeros) nzeros
         n i = length . filter (== i)
 
+to_printeable :: Char -> Char
+to_printeable x = if x == '1' then '#' else ' '
+
+message :: String -> (Int, Int) -> String
+message image (width, height) = map (to_printeable . head . filter (/= '2')) $ transpose $ chunksOf (width*height) image
 
 main :: IO()
 main = do
     contents <- readFile "data/day8.txt"
     let image = head $ lines contents
-    let result = zeros_per_layer image (25,6)
-    putStr $ (show result) ++ "\n"
+    let result = message image (25,6)
+    putStrLn $ unlines $ chunksOf 25 result
