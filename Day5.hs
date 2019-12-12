@@ -1,5 +1,3 @@
-module Day5 (run_program) where
-
 import System.IO
 import Data.List.Split
 import Data.List
