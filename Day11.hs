@@ -68,9 +68,15 @@ run_program input position rbase output robotpos robotcur robotdir program = cas
         next_o = if (length output == 2) then [v1] else output ++ [v1]
         (next_i, nextpos, nextcur, nextdir) = new_input next_o robotpos robotcur robotdir
 
+paint :: Map.Map (Int,Int) Int -> String
+paint output = unlines $ map (map (\x -> if (x==0) then ' ' else '#')) matrix
+    where
+        empty_matrix = replicate 100 $ replicate 100 0
+        matrix = map (\r -> map (\c -> Map.findWithDefault 0 (r, c) output) [-70..29]) [-70..29]
+
 main :: IO()
 main = do
     contents <- readFile "data/day11.txt"
     let program = map read $ splitOn "," contents :: [Int]
-    let result = run_program [0] 0 0 [] (Map.fromList []) (0,0) U program
-    putStr $ (show $ length result) ++ "\n"
+    let result = run_program [1] 0 0 [] (Map.fromList []) (0,0) U program
+    putStr $ paint result
