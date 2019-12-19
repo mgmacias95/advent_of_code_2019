@@ -1,5 +1,6 @@
 import Data.List.Split (splitOn)
-import Data.List (concat, lines, last)
+import Data.List
+import qualified Data.Set as Set
 
 data Point = Point {x :: Int, y :: Int, z :: Int} deriving (Show, Eq, Ord)
 
@@ -10,43 +11,39 @@ instance Read Point where
             current:therest = splitOn ">" string_to_parse
             x:y:z:[] = map (read . last . splitOn "=") $ splitOn "," current :: [Int]
 
-infixr 5 #
-(#) :: Point -> Point -> Point
-(Point x y z) # (Point x' y' z') = (Point (new x x') (new y y') (new z z'))
-    where
-        new a b
-            | a > b     = -1
-            | a < b     = 1
-            | otherwise = 0
-
-infixr 5 .+
-(.+) :: Point -> Point -> Point
-(Point x y z) .+ (Point x' y' z') = (Point (x + x') (y + y') (z + z'))
-
 data Planet = Planet {position :: Point, velocity :: Point} deriving (Show, Eq, Ord, Read)
 
-single_iteration :: Planet -> [Planet] -> Planet
-single_iteration (Planet pos vel) planets = Planet next_pos next_vel
+infixr 5 !!!
+(!!!) :: Planet -> Int -> (Int, Int)
+(Planet (Point px py pz) (Point vx vy vz)) !!! i
+    | i == 0 = (px, vx)
+    | i == 1 = (py, vy)
+    | i == 2 = (pz, vz)
+
+infixr 7 #
+(#) :: (Int, Int) -> (Int, Int) -> Int
+(x, y) # (x', y')
+    | x > x'     = -1
+    | x < x'     = 1
+    | otherwise  = 0
+
+steps_coord :: [(Int, Int)] -> Set.Set [(Int, Int)] -> Int
+steps_coord xs s
+    | Set.member next s = Set.size s
+    | otherwise         = steps_coord next (Set.insert next s)
     where
-        next_vel = foldl (.+) vel $ map (\(Planet pos' _) -> pos # pos') planets
-        next_pos = pos .+ next_vel
+        next_vel = map (\x -> foldl (+) (snd x) $ map (\y -> x # y) xs) xs
+        next = map (\((x, y), v) -> (x+v, v)) $ zip xs next_vel
 
-iteration :: [Planet] -> [Planet]
-iteration planets = map (\p -> single_iteration p planets) planets
-
-simulator :: Int -> [Point] -> [Planet]
-simulator n points = last $ take (n+1) $ iterate iteration planets
+necessary_steps :: [Point] -> Int
+necessary_steps points = foldl1 (lcm) steps_coords
     where
         planets = map (\x -> Planet x (Point 0 0 0)) points
-
-energy :: [Planet] -> Int
-energy = sum . map (\(Planet pos vel) -> (sum_point pos) * (sum_point vel))
-    where
-        sum_point (Point x y z) = abs x + abs y + abs z
+        steps_coords = map (\x -> steps_coord (map (!!! x) planets) (Set.fromList [])) [0..2]
 
 main :: IO()
 main = do
     contents <- readFile "data/day12.txt"
     let points = map (read) $ lines contents :: [Point]
-    let result = energy $ simulator 1000 points
+    let result = necessary_steps points
     putStrLn $ show result
