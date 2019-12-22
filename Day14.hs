@@ -31,8 +31,24 @@ chemicals conversions lefties ((q, current):xs) = res ++ chemicals conversions (
 n_chemicals :: [(Int, Map.Map String Int)] -> Int
 n_chemicals = sum . map (fst)
 
+nc :: Int -> Map.Map String (Int, [(Int, String)]) -> Int
+nc x c = n_chemicals $ chemicals c (Map.fromList []) [(x, "FUEL")]
+
+trillion :: Map.Map String (Int, [(Int, String)]) -> Int -> Int -> (Int, Int)
+trillion c start step = head $ dropWhile ((< 1000000000000) . snd) $ map (\x -> (x, nc x c)) [start, start + step..]
+
+precise_trillion :: Map.Map String (Int, [(Int, String)]) -> Int -> Int -> Int
+precise_trillion c s st
+    | sol1 >= 1000000000000 = precise_trillion c (n - 1000) (st `div` 10)
+    | otherwise             = n - 1
+    where
+        (n, sol) = trillion c s st
+        sol1 = nc (n - 1) c
+
 main :: IO()
 main = do
     contents <- readFile "data/day14.txt"
-    let nc = n_chemicals $ chemicals (to_map $ lines contents) (Map.fromList []) [(1, "FUEL")]
-    putStr $ show nc ++ "\n"
+    let c = to_map $ lines contents
+    let start = 1000000000000 `div` (nc 1 c)
+    let sol = precise_trillion c start 1000
+    putStr $ show sol ++ "\n"
